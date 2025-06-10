@@ -168,7 +168,7 @@ rds_{符号}{視差値:03d}_{眼}.png
 
 ## 🌐 オンライン版
 
-**URL**: https://rds-generator-ogwlab.streamlit.app
+**URL**: https://ogwlab-app-rds-generator.streamlit.app/
 
 ### 特徴
 
