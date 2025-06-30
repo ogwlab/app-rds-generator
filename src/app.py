@@ -188,37 +188,10 @@ class RDSGenerator:
             
         return shifted_image
     
-    def apply_fft_phase_shift(self, image: np.ndarray, shift_pixels: float, 
-                            mask: Optional[np.ndarray] = None) -> np.ndarray:
-        """FFT位相シフト法で画像をシフト（2次元FFT版）"""
-        if mask is not None:
-            # 図形領域のみをシフト処理
-            shifted_image = image.copy()
-            
-            # マスクされた領域を2次元FFTでシフト
-            # マスク領域を含む最小矩形を計算
-            rows, cols = np.where(mask)
-            if len(rows) > 0 and len(cols) > 0:
-                min_row, max_row = rows.min(), rows.max()
-                min_col, max_col = cols.min(), cols.max()
-                
-                # マスク領域を含む矩形部分を抽出
-                roi = image[min_row:max_row+1, min_col:max_col+1]
-                mask_roi = mask[min_row:max_row+1, min_col:max_col+1]
-                
-                # 2次元FFTで処理
-                shifted_roi = self.apply_phase_shift_2d_robust(roi, shift_pixels)
-                
-                # マスク領域のみを更新
-                shifted_image[min_row:max_row+1, min_col:max_col+1] = np.where(
-                    mask_roi, shifted_roi, 
-                    shifted_image[min_row:max_row+1, min_col:max_col+1]
-                )
-            
-            return shifted_image
-        else:
-            # マスクがない場合は画像全体をシフト
-            return self.apply_phase_shift_2d_robust(image, shift_pixels)
+    def apply_fft_phase_shift(self, image: np.ndarray, shift_pixels: float) -> np.ndarray:
+        """FFT位相シフト法で画像をシフト（2次元FFT版・全体処理）"""
+        # マスクの有無にかかわらず、画像全体をシフトする
+        return self.apply_phase_shift_2d_robust(image, shift_pixels)
     
     def generate_stereo_pair(self, base_image: np.ndarray, disparity_pixels: float,
                            shape_mask: Optional[np.ndarray] = None) -> Tuple[np.ndarray, np.ndarray]:
@@ -231,11 +204,20 @@ class RDSGenerator:
         np.random.seed(43)  # 右眼用のシード（異なるノイズパターン）
         right_base = self.add_minimal_background_noise(base_image, shape_mask, noise_std=0.5)
         
-        # 図形領域にFFT位相シフトを適用
-        left_image = self.apply_fft_phase_shift(left_base, -disparity_pixels / 2, shape_mask)
-        right_image = self.apply_fft_phase_shift(right_base, disparity_pixels / 2, shape_mask)
-        
-        # 値を0-255の範囲にクリップ（連続輝度値として保持）
+        # 画像全体をFFT位相シフト
+        left_shifted = self.apply_fft_phase_shift(left_base, -disparity_pixels / 2)
+        right_shifted = self.apply_fft_phase_shift(right_base, disparity_pixels / 2)
+
+        # マスクが指定されている場合、図形領域のみシフト後の画像で置き換える
+        if shape_mask is not None:
+            left_image = np.where(shape_mask, left_shifted, left_base)
+            right_image = np.where(shape_mask, right_shifted, right_base)
+        else:
+            # マスクがない場合は全体がシフトされる
+            left_image = left_shifted
+            right_image = right_shifted
+
+        # 値を0-255の範囲にクリップ
         left_image = np.clip(left_image, 0, 255)
         right_image = np.clip(right_image, 0, 255)
         
