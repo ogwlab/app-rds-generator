@@ -55,6 +55,13 @@ class TestRDSConfig:
         with pytest.raises(ValueError, match="Density must be between 1 and 100"):
             RDSConfig(density=150)
         
+        # Test invalid dot size
+        with pytest.raises(ValueError, match="Dot size must be between 1 and 10"):
+            RDSConfig(dot_size=0)
+        
+        with pytest.raises(ValueError, match="Dot size must be between 1 and 10"):
+            RDSConfig(dot_size=11)
+        
         # Test invalid disparity
         with pytest.raises(ValueError, match="Disparity must be between -600 and 600"):
             RDSConfig(disparity_arcsec=1000)
@@ -66,6 +73,28 @@ class TestRDSConfig:
         # Test invalid PPI
         with pytest.raises(ValueError, match="PPI must be between 72 and 400"):
             RDSConfig(ppi=500)
+        
+        # Test invalid shape parameters
+        with pytest.raises(ValueError, match="Shape width must be positive"):
+            RDSConfig(shape_width=0)
+        
+        with pytest.raises(ValueError, match="Shape height must be positive"):
+            RDSConfig(shape_height=0)
+        
+        with pytest.raises(ValueError, match="Shape width cannot exceed image width"):
+            RDSConfig(width=256, shape_width=300)
+        
+        with pytest.raises(ValueError, match="Shape height cannot exceed image height"):
+            RDSConfig(height=256, shape_height=300)
+        
+        with pytest.raises(ValueError, match="Shape center X must be within image boundaries"):
+            RDSConfig(width=256, center_x=300)
+        
+        with pytest.raises(ValueError, match="Shape center Y must be within image boundaries"):
+            RDSConfig(height=256, center_y=300)
+        
+        with pytest.raises(ValueError, match="Border width must be positive"):
+            RDSConfig(border_width=0)
     
     def test_to_dict(self):
         """Test conversion to dictionary"""

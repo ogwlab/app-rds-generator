@@ -60,6 +60,22 @@ class RDSConfig:
             raise ValueError("Distance must be between 30 and 200 cm")
         if not (72 <= self.ppi <= 400):
             raise ValueError("PPI must be between 72 and 400")
+        
+        # Validate shape parameters
+        if self.shape_width <= 0:
+            raise ValueError("Shape width must be positive")
+        if self.shape_height <= 0:
+            raise ValueError("Shape height must be positive")
+        if self.shape_width > self.width:
+            raise ValueError("Shape width cannot exceed image width")
+        if self.shape_height > self.height:
+            raise ValueError("Shape height cannot exceed image height")
+        if not (0 <= self.center_x <= self.width):
+            raise ValueError("Shape center X must be within image boundaries")
+        if not (0 <= self.center_y <= self.height):
+            raise ValueError("Shape center Y must be within image boundaries")
+        if self.border_width <= 0:
+            raise ValueError("Border width must be positive")
     
     def to_dict(self) -> dict:
         """Convert configuration to dictionary"""

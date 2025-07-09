@@ -11,10 +11,15 @@ from rds_generator.config import RDSConfig
 class TestRDSGenerator:
     """Test RDS generator core functionality"""
     
-    def setUp(self):
-        """Set up test fixtures"""
-        self.generator = RDSGenerator()
-        self.config = RDSConfig(
+    @pytest.fixture
+    def generator(self):
+        """Test fixture for RDS generator"""
+        return RDSGenerator()
+    
+    @pytest.fixture
+    def config(self):
+        """Test fixture for RDS configuration"""
+        return RDSConfig(
             width=128, height=128, density=25.0,
             disparity_arcsec=20.0, distance_cm=57.0, ppi=96
         )

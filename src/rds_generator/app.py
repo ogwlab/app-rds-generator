@@ -84,6 +84,12 @@ def main():
     batch_end = st.sidebar.number_input("終了視差 (arcsec)", min_value=-1000, max_value=1000, value=100, step=10)
     batch_step = st.sidebar.number_input("ステップ (arcsec)", min_value=1, max_value=200, value=20)
     
+    # Validate batch parameters
+    if batch_start > batch_end:
+        st.sidebar.error("開始視差は終了視差以下である必要があります")
+    if batch_step <= 0:
+        st.sidebar.error("ステップは正の値である必要があります")
+    
     # Main area
     col1, col2 = st.columns([3, 1])
     
@@ -211,6 +217,19 @@ def create_zip_file(result: Dict, config: RDSConfig) -> io.BytesIO:
 def batch_generate(rds_gen: RDSGenerator, base_config: RDSConfig, 
                   start: int, end: int, step: int):
     """Generate batch of RDS images"""
+    # Validate parameters
+    if step == 0:
+        st.error("ステップは0にできません")
+        return
+    
+    if step > 0 and start > end:
+        st.error("ステップが正の場合、開始視差は終了視差以下である必要があります")
+        return
+    
+    if step < 0 and start < end:
+        st.error("ステップが負の場合、開始視差は終了視差以上である必要があります")
+        return
+    
     disparities = np.arange(start, end + step, step)
     total_images = len(disparities)
     
