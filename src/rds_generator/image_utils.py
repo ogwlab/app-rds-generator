@@ -44,9 +44,15 @@ def generate_random_dots(width: int, height: int, density: float,
         y = np.random.randint(0, height - dot_size + 1)
         
         if dot_shape == '四角':
-            draw.rectangle([x, y, x + dot_size, y + dot_size], fill=dot_color)
+            draw.rectangle(
+                [x, y, x + dot_size - 1, y + dot_size - 1],
+                fill=dot_color
+            )
         else:  # 円
-            draw.ellipse([x, y, x + dot_size, y + dot_size], fill=dot_color)
+            draw.ellipse(
+                [x, y, x + dot_size - 1, y + dot_size - 1],
+                fill=dot_color
+            )
     
     # Convert to numpy array (grayscale)
     img_gray = img.convert('L')
@@ -108,7 +114,7 @@ def create_shape_mask(width: int, height: int, shape_type: str,
     return mask
 
 
-def add_minimal_background_noise(image: np.ndarray, mask: np.ndarray, 
+def add_minimal_background_noise(image: np.ndarray, mask: Optional[np.ndarray] = None, 
                                noise_std: float = 0.5, 
                                random_seed: Optional[int] = None) -> np.ndarray:
     """
@@ -116,7 +122,7 @@ def add_minimal_background_noise(image: np.ndarray, mask: np.ndarray,
     
     Args:
         image: Input image
-        mask: Shape mask (True for shape region)
+        mask: Shape mask (True for shape region). None を指定するとノイズ付加をスキップ
         noise_std: Standard deviation of noise
         random_seed: Random seed for noise generation (None for random)
         
@@ -125,8 +131,14 @@ def add_minimal_background_noise(image: np.ndarray, mask: np.ndarray,
     """
     noisy_image = image.copy()
     
-    # Background region (inverse of mask)
-    background_mask = ~mask
+    # Background region (inverse of mask); when mask is None, skip noise
+    if mask is None:
+        background_mask = np.zeros(image.shape, dtype=bool)
+    else:
+        background_mask = ~mask
+    
+    if not np.any(background_mask):
+        return noisy_image
     
     # Generate noise with optional seed for reproducibility
     if random_seed is not None:

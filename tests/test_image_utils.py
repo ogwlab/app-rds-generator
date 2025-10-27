@@ -40,6 +40,26 @@ class TestImageUtils:
         assert image_circle.shape == (height, width)
         assert image_circle.dtype == np.float64
     
+    def test_generate_random_dots_respects_dot_size(self):
+        """ドットサイズが描画領域に反映されることを確認"""
+        width, height = 8, 8
+        
+        single_dot_density = 1.5625  # 1ドットだけ生成
+        image_single = generate_random_dots(
+            width, height, single_dot_density, 1,
+            "四角", "#FFFFFF", "#000000", random_seed=0
+        )
+        dot_pixels_single = np.count_nonzero(image_single != 255.0)
+        assert dot_pixels_single == 1
+        
+        single_square_density = 6.25  # dot_size=2で1ドット
+        image_square = generate_random_dots(
+            width, height, single_square_density, 2,
+            "四角", "#FFFFFF", "#000000", random_seed=0
+        )
+        dot_pixels_square = np.count_nonzero(image_square != 255.0)
+        assert dot_pixels_square == 4
+    
     def test_create_shape_mask_rectangle(self):
         """Test rectangular shape mask creation"""
         width, height = 64, 64
@@ -108,6 +128,15 @@ class TestImageUtils:
         # Background region should be different
         background_mask = ~mask
         assert not np.array_equal(noisy_image[background_mask], image[background_mask])
+    
+    def test_add_minimal_background_noise_without_mask(self):
+        """マスク未指定時はノイズを加えない"""
+        width, height = 16, 16
+        image = np.ones((height, width)) * 128
+        
+        noisy_image = add_minimal_background_noise(image, None, noise_std=1.0, random_seed=123)
+        
+        np.testing.assert_array_equal(noisy_image, image)
     
     def test_combine_stereo_images(self):
         """Test stereo image combination"""
