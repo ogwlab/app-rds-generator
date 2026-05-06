@@ -225,7 +225,7 @@ RDS刺激は、大脳皮質V1野の両眼視差検出細胞の応答特性を調
 
 ### 開発環境
 
-  - **言語**: Python 3.8+
+  - **言語**: Python 3.11+
   - **主要ライブラリ**: NumPy, SciPy, Streamlit, Pillow
   - **FFT実装**: SciPy.fft（FFTW ベース）
 
